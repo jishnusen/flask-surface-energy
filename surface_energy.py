@@ -202,11 +202,11 @@ class Simulator:
         #        bounds=([-np.inf, 0, 0, 0, 0], [0, 1, np.inf, 1, 1])) 
             dH_one_model = Model(dH_one_func)
             dH_one_param = dH_one_model.make_params()
-            dH_one_param['D'].set(value=self.D - 44000)
-            dH_one_param['d'].set(value=1e-3)
-            dH_one_param['E'].set(value=1e12)
-            dH_one_param['e'].set(value=1e-3)
-            dH_one_param['f'].set(value=1e-5)
+            dH_one_param['D'].set(value=self.D - 44000, min=-np.inf, max=0)
+            dH_one_param['d'].set(value=1e-3, min=0, max=1)
+            dH_one_param['E'].set(value=1e12, min=0, max=np.inf)
+            dH_one_param['e'].set(value=1e-3, min=0, max=1)
+            dH_one_param['f'].set(value=1e-5, min=0, max=1)
             dH_one_fit = dH_one_model.fit(self.exp_dH_dtheta + self.heat, x=self.exp_theta, params=dH_one_param)
             dH_one_opt = dH_one_fit.best_values
             self.D = dH_one_opt['D']
