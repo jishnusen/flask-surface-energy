@@ -1,0 +1,159 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.0/papaparse.js"></script>
+<script>window.jQuery || document.write('<script src="{{
+  url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  let fit_params = {};
+  let csvdata = "";
+</script>
+
+<script>
+let test = "";
+</script>
+
+<form id="data">
+    <div style="width: 1000px; display: table;">
+        <div style="display: table-row">
+            <div style="width: 25%; display: table-cell;"><label for="BET"> BET: </label>
+                <input type=text size=10 name="BET"></input>
+            </div>
+            <div style="width: 25%; display: table-cell;"><label for="exp_theta"> Theta: </label>
+                <textarea rows="25" cols="20" name="exp_theta"></textarea>
+            </div>
+            <div style="width: 25%; display: table-cell;"><label for="exp_p_po"> P_PO: </label>
+                <textarea rows="25" cols="20" name="exp_p_po"></textarea>
+            </div>
+            <div style="width: 25%; display: table-cell;"><label for="exp_dH"> dH/dtheta: </label>
+                <textarea rows="25" cols="20" name="exp_dH"></textarea>
+            </div>
+            <div style="width: 50%; display: table-cell;"><label for="exp_dH">Fit Params: </label>
+                <textarea rows="25" cols="40" name="fit_params"></textarea>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="input">
+<button type="button" onclick="myFunction()">Submit Upload</button>
+</form>
+
+
+<script>
+function myFunction() {
+    var file = document.getElementById("input").files[0];
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var text = reader.result;
+        var parsed = Papa.parse(text, {header: true} );
+        var exp_dH = ""
+        var exp_p_po = ""
+        var exp_theta = ""
+        for (i = 0; i < parsed.data.length - 1; i++) {
+            exp_dH += parsed.data[i].exp_dH + "\n";
+            exp_p_po += parsed.data[i].exp_p_po + "\n";
+            exp_theta += parsed.data[i].exp_theta + "\n";
+        }
+        document.forms['data'].elements['exp_dH'].value = exp_dH;
+        document.forms['data'].elements['exp_p_po'].value = exp_p_po;
+        document.forms['data'].elements['exp_theta'].value = exp_theta;
+    }
+    reader.readAsText(file);
+}
+</script>
+
+<div style="width: 1000px; display: table;">
+    <div style="display: table-row">
+        <div style="width: 50%; display: table-cell;">
+            <br><a href=# id=FitTheta>Fit Theta</a></br>
+            <img id=thetafitplot />
+        </div>
+        <div style="width: 50%; display: table-cell;">
+            <br><a href=# id=FitdH>Fit dH/dtheta</a>
+	    <input type="radio" id="dhChoice1" name="dhmethod" value="0">
+	        <label for="dhChoice1">D*exp(-x/d) + E*(f*x-x^2)*exp(-x/e)</label>
+	    
+	        <input type="radio" id="dhChoice2" name="dhmethod" value="1">
+	        <label for="dhChoice2">D*exp(-x/d)</label>
+	    </br>
+            <img id=dhfitplot />
+        </div>
+    </div>
+</div>
+
+<br><a href=# id=SolveDiff>Solve Differential</a>
+<label id="Progress"></label>
+<br>
+
+<script type=text/javascript>
+    $(function() {
+        $('a#FitTheta').bind('click', function() {
+            $.getJSON($SCRIPT_ROOT + '/_fit_theta', {
+                BET: $('input[name="BET"]').val(),
+                exp_theta: $('textarea[name="exp_theta"]').val(),
+                exp_dH: $('textarea[name="exp_dH"]').val(),
+                exp_p_po: $('textarea[name="exp_p_po"]').val()
+            }, function(data) {
+                $("#thetafitplot").attr('src',data.result);
+                document.forms['data'].elements['fit_params'].value =
+                    JSON.stringify(data.fit_params, null, 2);
+                console.log(data.fit_params);
+            });
+            return false;
+        });
+    });
+</script>
+
+<script type=text/javascript>
+    $(function() {
+        $('a#FitdH').bind('click', function() {
+            $.getJSON($SCRIPT_ROOT + '/_fit_dh', {
+                BET: $('input[name="BET"]').val(),
+                exp_theta: $('textarea[name="exp_theta"]').val(),
+                exp_dH: $('textarea[name="exp_dH"]').val(),
+                exp_p_po: $('textarea[name="exp_p_po"]').val(),
+		dh_method: ($("input[name=dhmethod]:checked").val() * 1)
+            }, function(data) {
+                $("#dhfitplot").attr('src',data.result);
+                document.forms['data'].elements['fit_params'].value =
+                    JSON.stringify(data.fit_params, null, 2);
+            });
+            return false;
+        });
+    });
+</script>
+
+<script type=text/javascript>
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+</script>
+
+<script type=text/javascript>
+    $(function() {
+        $('a#SolveDiff').bind('click', function() {
+            document.getElementById("Progress").innerHTML = "Started Solving, this will take several minutes";
+            $.getJSON($SCRIPT_ROOT + '/_solve_diff', {
+                BET: $('input[name="BET"]').val(),
+                exp_theta: $('textarea[name="exp_theta"]').val(),
+                exp_dH: $('textarea[name="exp_dH"]').val(),
+                exp_p_po: $('textarea[name="exp_p_po"]').val(),
+		dh_method: ($("input[name=dhmethod]:checked").val() * 1)
+            }, function(data) {
+                document.getElementById("Progress").innerHTML = "Complete, gamma was: "+ data.gamma;
+		console.log(data.result);
+                download("result.csv", data.result);
+		console.log("TRIED DOWNLOAD OOF");
+            });
+            return false;
+        });
+    });
+</script>
+

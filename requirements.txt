@@ -1,0 +1,7 @@
+gunicorn
+Flask
+numpy
+matplotlib
+pandas
+scipy
+lmfit
