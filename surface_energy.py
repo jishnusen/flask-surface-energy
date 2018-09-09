@@ -18,16 +18,16 @@ import base64
 
 #subprocess.call(['./setup.sh'])
 
-lib = cdll.LoadLibrary("/opt/water/numerical_integral.so")
-lib.numerical_integral.argtypes = [
-    c_double, c_double, c_double, c_double, c_double, c_double, c_double,
-    c_double, c_double, c_double, c_double, c_double, c_double, c_double,
-    c_double, c_double,
-    POINTER(c_double),
-    POINTER(c_double),
-    POINTER(c_double),
-    POINTER(c_double)
-]
+# lib = cdll.LoadLibrary("numerical_integral.so")
+# lib.numerical_integral.argtypes = [
+#     c_double, c_double, c_double, c_double, c_double, c_double, c_double,
+#     c_double, c_double, c_double, c_double, c_double, c_double, c_double,
+#     c_double, c_double,
+#     POINTER(c_double),
+#     POINTER(c_double),
+#     POINTER(c_double),
+#     POINTER(c_double)
+# ]
 
 
 def theta_func(x, b, theta_c):
@@ -313,6 +313,25 @@ class Simulator:
         res_theta = (c_double * k)()
         res_gamma = (c_double * k)()
         res_uads = (c_double * k)()
+
+        return {
+            'theta_chemi': self.theta_chemi,
+            'theta_physi': self.theta_physi,
+            'c': self.c,
+            'D': self.D,
+            'd': self.d,
+            'E': self.E,
+            'e': self.e,
+            'A': self.A,
+            'BET': self.BET,
+            'entropy': self.entropy,
+            'heat': self.heat,
+            'temperature': self.temperature,
+            'b': self.b,
+            'temp_gamma': temp_gamma,
+            'temp_diff_gamma': temp_diff_gamma,
+            'f': self.f,
+        }
 
         lib.numerical_integral(
             self.theta_chemi, self.theta_physi, self.c, self.D, self.d, self.E,

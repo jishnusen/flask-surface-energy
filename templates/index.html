@@ -1,5 +1,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.0/papaparse.js"></script>
+<script src="{{ url_for('static', filename='num_int_asm.js') }}"> </script>
 <script>window.jQuery || document.write('<script src="{{
   url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
 <script type=text/javascript>
@@ -140,6 +141,10 @@ function download(filename, text) {
     $(function() {
         $('a#SolveDiff').bind('click', function() {
             document.getElementById("Progress").innerHTML = "Started Solving, this will take several minutes";
+            var timeInMinutes = 20;
+            //var currentTime = Date.parse(new Date());
+            //var deadline = new Date(currentTime + timeInMinutes*60*1000);
+            //initializeClock('clockdiv', deadline);
             $.getJSON($SCRIPT_ROOT + '/_solve_diff', {
                 BET: $('input[name="BET"]').val(),
                 exp_theta: $('textarea[name="exp_theta"]').val(),
@@ -147,13 +152,15 @@ function download(filename, text) {
                 exp_p_po: $('textarea[name="exp_p_po"]').val(),
 		dh_method: ($("input[name=dhmethod]:checked").val() * 1)
             }, function(data) {
-                document.getElementById("Progress").innerHTML = "Complete, gamma was: "+ data.gamma;
-		console.log(data.result);
-                download("result.csv", data.result);
+        		console.log(data.result);
+                result = data.result;
+                res_str = Module.numerical_integral(result.theta_chemi, result.theta_physi, result.c, result.D, result.d, result.E, result.e, result.A, result.BET, result.entropy, result.heat, result.temperature, result.b, result.temp_gamma, result.temp_diff_gamma, result.f)
+                parsed = Papa.parse(res_str, {header:true} )
+                document.getElementById("Progress").innerHTML = "Complete, gamma was: "+ parsed.data[9999].gamma;
+                download("result.csv", res_str);
 		console.log("TRIED DOWNLOAD OOF");
             });
             return false;
         });
     });
 </script>
-

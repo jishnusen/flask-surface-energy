@@ -70,7 +70,7 @@ def fit_dh():
     str_theta = request.args.get('exp_theta', "0", type=str)
     str_p_po = request.args.get('exp_p_po', "0", type=str)
     str_dH = request.args.get('exp_dH', "0", type=str)
-    dh_method = request.args.get('dh_method', 0, type=int)
+    dh_method = request.args.get('dh_method', 1, type=int)
     dh_method = bool(dh_method)
 
     exp_theta = np.array(np.fromstring(str_theta, sep='\n'))
@@ -113,7 +113,7 @@ def solve_diff():
     str_theta = request.args.get('exp_theta', "0", type=str)
     str_p_po = request.args.get('exp_p_po', "0", type=str)
     str_dH = request.args.get('exp_dH', "0", type=str)
-    dh_method = request.args.get('dh_method', 0, type=int)
+    dh_method = request.args.get('dh_method', 1, type=int)
     dh_method = bool(dh_method)
 
     exp_theta = np.array(np.fromstring(str_theta, sep='\n'))
@@ -130,9 +130,8 @@ def solve_diff():
     sim = Simulator(d)
     sim.fit_theta()
     sim.fit_dH(dh_method)
-    res, res_gamma = sim.solve_differential()
-    print(res)
-    return jsonify(result=res, gamma=res_gamma)
+    res = sim.solve_differential()
+    return jsonify(result=res)
 
 
 @application.route('/')
